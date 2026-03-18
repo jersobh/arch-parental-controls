@@ -33,18 +33,12 @@ All enforcement happens locally. No remote account or cloud sync is required.
 The following diagram describes how BigLinux Parental Controls maps to the responsibility chain required by Brazil's ECA Digital (Lei 15.211/2025):
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                        ECA Digital Compliance Chain                                         │
-│                        (Lei 15.211/2025 — Art. 12, 13, 17, 18)                            │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
-
 WHO DOWNLOADS THE ISO AND INSTALLS THE SYSTEM
 │
 │  → This person is technically proficient.
 │  → They choose to install BigLinux on a machine that will be used by a child.
 │  → Just as they could have installed any of hundreds of other distros, a BSD variant,
 │    a Windows version, or any other operating system,
-│    the act of downloading and booting is irrelevant for child protection law.
 │  → The live environment is for testing and installation — it is not a child's desktop.
 │
 ▼
@@ -56,7 +50,6 @@ WHO DOWNLOADS THE ISO AND INSTALLS THE SYSTEM
 │  • Performs first boot and system configuration              │
 │  • Installs drivers and performs initial setup               │
 │                                                              │
-│  THIS IS WHERE ECA DIGITAL APPLIES                           │
 │  The adult is the responsible party — not the OS vendor.     │
 └──────────────────────────────────────────────────────────────┘
          │

@@ -22,6 +22,91 @@ The project combines a GTK4 + libadwaita control panel, privileged system helper
 
 All enforcement happens locally. No remote account or cloud sync is required.
 
+## ECA Digital Compliance — Who Is Responsible for What
+
+The following diagram describes how BigLinux Parental Controls maps to the responsibility chain required by Brazil's ECA Digital (Lei 15.211/2025):
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                        ECA Digital Compliance Chain                                         │
+│                        (Lei 15.211/2025 — Art. 12, 13, 17, 18)                            │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+
+WHO DOWNLOADS THE ISO AND INSTALLS THE SYSTEM
+│
+│  → This person is technically proficient.
+│  → They choose to install BigLinux on a machine that will be used by a child.
+│  → Just as they could have installed any of hundreds of other distros or Windows 7,
+│    the act of downloading and booting is irrelevant for child protection law.
+│  → The live environment is for testing and installation — it is not a child's desktop.
+│
+▼
+┌──────────────────────────────────────────────────────────────┐
+│  THE ADULT WHO CONFIGURES THE COMPUTER                       │
+│                                                              │
+│  • Buys or assembles the computer for the child             │
+│  • Sets BIOS password and disables USB boot                  │
+│  • Performs first boot and system configuration              │
+│  • Installs drivers and performs initial setup               │
+│                                                              │
+│  THIS IS WHERE ECA DIGITAL APPLIES                           │
+│  The adult is the responsible party — not the OS vendor.     │
+└──────────────────────────────────────────────────────────────┘
+         │
+         │  BigLinux Welcome screen prompts:
+         │  "Would you like to create a supervised account?"
+         ▼
+┌──────────────────────────────────────────────────────────────┐
+│  BIGLINUX PARENTAL CONTROLS — What the adult does here       │
+│                                                              │
+│  ① Authenticates as administrator (pkexec / polkit)         │
+│  ② Creates a supervised account for the child               │
+│  ③ Declares the child's age group (ECA Digital Range):      │
+│                                                              │
+│     0–12 │ 13–15 │ 16–17 │ 18+                             │
+│                                                              │
+│     ← This is NOT self-declaration by the child.            │
+│       The adult responsible for the computer                 │
+│       declares the age of the minor who will use it.         │
+│       This satisfies Art. 12 (age verification) without      │
+│       requiring biometrics, CPF validation, or remote APIs. │
+│                                                              │
+│  ④ Optionally enables:                                      │
+│     • App restrictions (ACL) — block package managers, SSH  │
+│     • Web filter (nftables DNS) — block adult/gambling sites │
+│     • Screen time limits (PAM) — daily quota + allowed hours │
+│     • Activity monitoring — local only, never leaves device  │
+└──────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────────────┐
+│  WHAT THE CHILD OR TEENAGER SEES                             │
+│                                                              │
+│  • Their own limited account — normal desktop experience     │
+│  • Cannot install software or access restricted apps         │
+│  • Web filter active — DNS blocks adult/dangerous content    │
+│  • Session time enforced — PAM rules log out when exceeded   │
+│  • System tray indicator shows monitoring is active (ECA     │
+│    Art. 17 — information obligation to the minor)            │
+└──────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────────────┐
+│  DATA AND PRIVACY (LGPD Art. 14, 18 / GDPR Art. 8, 17, 20) │
+│                                                              │
+│  • All data stays on the device — no cloud, no telemetry    │
+│  • Parent can view activity, export data, or delete it all  │
+│  • Activity records auto-deleted after 30 days              │
+│  • D-Bus age signal available for other apps on this device  │
+│    (br.com.biglinux.AgeSignal1.GetAgeGroup) — local only    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+> **Legal note:** Compliance with ECA Digital requires a responsible adult to perform the initial configuration.
+> The software provides the tools; the legal obligation belongs to the person who sets up the computer for a child.
+> This is the same model used by dedicated hardware devices (parental routers, smart TVs, set-top boxes) —
+> the manufacturer supplies the controls; the adult is responsible for activating them.
+
 ## What It Does
 
 | Area | What users get |

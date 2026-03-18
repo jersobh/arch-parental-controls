@@ -1,12 +1,15 @@
 """App filter page — manage per-user app access."""
 
+import json
+import shutil
+
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk
 
-from big_parental_controls.core.constants import GROUP_HELPER
+from big_parental_controls.core.constants import ACL_STATE_FILE, GROUP_HELPER
 from big_parental_controls.services.accounts_service import AccountsServiceWrapper
 from big_parental_controls.services.malcontent_service import MalcontentService
 from big_parental_controls.services import desktop_hide_service
@@ -19,20 +22,26 @@ _ = setup_i18n()
 class AppFilterPage(Gtk.Box):
     """Page for managing per-user app access control."""
 
-    def __init__(self, **kwargs: object) -> None:
+    def __init__(self, user: object | None = None, **kwargs: object) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0, **kwargs)
         self._accounts = AccountsServiceWrapper()
         try:
             self._malcontent = MalcontentService()
         except GLib.Error:
             self._malcontent = None
+        self._initial_user = user
         self._selected_uid: int | None = None
         self._selected_username: str | None = None
         self._pending_changes: dict[str, bool] = {}
         self._app_rows: dict[str, Adw.SwitchRow] = {}
+        self._filter_text: str = ""
         self._build_ui()
 
     def _build_ui(self) -> None:
+        toolbar = Adw.ToolbarView()
+        header = Adw.HeaderBar()
+        toolbar.add_top_bar(header)
+
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -63,6 +72,13 @@ class AppFilterPage(Gtk.Box):
         self._empty_status.set_description(_("Choose a supervised user to manage app access."))
         inner.append(self._empty_status)
 
+        # Search entry
+        self._search_entry = Gtk.SearchEntry()
+        self._search_entry.set_placeholder_text(_("Filter apps…"))
+        self._search_entry.set_visible(False)
+        self._search_entry.connect("search-changed", self._on_search_changed)
+        inner.append(self._search_entry)
+
         # Apps group
         self._apps_group = Adw.PreferencesGroup()
         self._apps_group.set_title(_("Installed Apps"))
@@ -79,7 +95,8 @@ class AppFilterPage(Gtk.Box):
 
         clamp.set_child(inner)
         scrolled.set_child(clamp)
-        self.append(scrolled)
+        toolbar.set_content(scrolled)
+        self.append(toolbar)
 
         self._populate_user_combo()
 
@@ -88,11 +105,20 @@ class AppFilterPage(Gtk.Box):
         self._supervised_users = []
         self._user_model.splice(0, self._user_model.get_n_items(), [])
 
+        preselect_idx = 0
         for user in self._accounts.list_users():
             if self._accounts.is_supervised(user):
+                if (
+                    self._initial_user is not None
+                    and user.get_uid() == self._initial_user.get_uid()
+                ):
+                    preselect_idx = len(self._supervised_users)
                 self._supervised_users.append(user)
                 label = user.get_real_name() or user.get_user_name()
                 self._user_model.append(label)
+
+        if self._supervised_users:
+            self._user_combo.set_selected(preselect_idx)
 
     def _on_user_changed(self, combo: Adw.ComboRow, _pspec: object) -> None:
         idx = combo.get_selected()
@@ -104,8 +130,11 @@ class AppFilterPage(Gtk.Box):
         self._selected_username = user.get_user_name()
         self._empty_status.set_visible(False)
         self._apps_group.set_visible(True)
+        self._search_entry.set_visible(True)
         self._pending_changes.clear()
         self._apply_btn.set_sensitive(False)
+        self._filter_text = ""
+        self._search_entry.set_text("")
         self._load_apps()
 
     def _load_apps(self) -> None:
@@ -127,6 +156,17 @@ class AppFilterPage(Gtk.Box):
         if self._selected_uid is None:
             return
 
+        # Read ACL state so filesystem-blocked apps show correctly
+        acl_blocked: set[str] = set()
+        try:
+            with open(ACL_STATE_FILE) as _f:
+                _state = json.load(_f)
+            acl_blocked = set(_state.get(self._selected_username or "", []))
+        except (OSError, json.JSONDecodeError):
+            pass
+
+        shown_paths: set[str] = set()
+
         for app_info in Gio.AppInfo.get_all():
             if not app_info.should_show():
                 continue
@@ -134,21 +174,28 @@ class AppFilterPage(Gtk.Box):
             if not exe:
                 continue
 
-            name = app_info.get_display_name()
-            app_id = app_info.get_id() or exe
+            # Resolve to absolute path so acl-batch can find the file
+            abs_exe = exe if exe.startswith("/") else (shutil.which(exe) or exe)
 
-            allowed = True
-            if self._malcontent:
+            name = app_info.get_display_name()
+            app_id = app_info.get_id() or abs_exe
+
+            # ACL state takes priority over malcontent OARS
+            if abs_exe in acl_blocked:
+                allowed = False
+            elif self._malcontent:
                 try:
                     allowed = self._malcontent.is_appinfo_allowed(self._selected_uid, app_info)
                 except Exception:  # noqa: BLE001 — malcontent D-Bus is optional
-                    pass
+                    allowed = True
+            else:
+                allowed = True
 
             row = Adw.SwitchRow()
             row.set_title(name)
-            row.set_subtitle(exe)
+            row.set_subtitle(abs_exe)
             row.set_active(allowed)
-            row.connect("notify::active", self._on_app_toggled, app_id, exe)
+            row.connect("notify::active", self._on_app_toggled, app_id, abs_exe)
 
             icon = app_info.get_icon()
             if icon:
@@ -156,8 +203,40 @@ class AppFilterPage(Gtk.Box):
                 img.set_pixel_size(32)
                 row.add_prefix(img)
 
+            row.set_visible(self._row_matches_filter(name, abs_exe))
             self._apps_group.add(row)
             self._app_rows[app_id] = row
+            shown_paths.add(abs_exe)
+
+        # Show ACL-blocked apps that have no visible .desktop entry
+        # (e.g. /usr/bin/rustdesk installed but NoDisplay=true system-wide)
+        for blocked_path in sorted(acl_blocked - shown_paths):
+            name = shutil.which(blocked_path) and blocked_path.split("/")[-1] or blocked_path
+            app_id = blocked_path
+            row = Adw.SwitchRow()
+            row.set_title(name)
+            row.set_subtitle(blocked_path)
+            row.set_active(False)
+            row.connect("notify::active", self._on_app_toggled, app_id, blocked_path)
+            img = Gtk.Image.new_from_icon_name("application-x-executable-symbolic")
+            img.set_pixel_size(32)
+            row.add_prefix(img)
+            row.set_visible(self._row_matches_filter(name, blocked_path))
+            self._apps_group.add(row)
+            self._app_rows[app_id] = row
+
+    def _row_matches_filter(self, name: str, path: str) -> bool:
+        if not self._filter_text:
+            return True
+        needle = self._filter_text.lower()
+        return needle in name.lower() or needle in path.lower()
+
+    def _on_search_changed(self, entry: Gtk.SearchEntry) -> None:
+        self._filter_text = entry.get_text().strip()
+        for row in self._app_rows.values():
+            title = row.get_title()
+            subtitle = row.get_subtitle() or ""
+            row.set_visible(self._row_matches_filter(title, subtitle))
 
     def _on_app_toggled(
         self, row: Adw.SwitchRow, _pspec: object, app_id: str, exe: str

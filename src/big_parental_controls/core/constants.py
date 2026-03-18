@@ -13,8 +13,19 @@ SUPERVISED_GROUP = "supervised"
 MIN_HUMAN_UID = 1000
 
 GROUP_HELPER = "/usr/lib/big-parental-controls/group-helper"
-LOCALE_DIR = "/usr/share/locale"
 GETTEXT_DOMAIN = "big-parental-controls"
+
+# Resolve locale dir — prefer local compiled .mo files during development
+_INSTALLED_LOCALE = "/usr/share/locale"
+_LOCAL_LOCALE = _os.path.normpath(
+    _os.path.join(_os.path.dirname(__file__), "..", "..", "..",
+                  "big-parental-controls", "usr", "share", "locale")
+)
+LOCALE_DIR = (
+    _LOCAL_LOCALE
+    if _os.path.isdir(_LOCAL_LOCALE)
+    else _INSTALLED_LOCALE
+)
 
 # Data paths — root-owned, not user-writable
 DATA_DIR = "/var/lib/big-parental-controls"

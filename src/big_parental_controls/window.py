@@ -194,6 +194,20 @@ class MainWindow(Adw.ApplicationWindow):
         nav_page.set_child(page_widget)
         self._nav_view.push(nav_page)
 
+    def show_app_filter(self, user: object) -> None:
+        """Push app filter editor for a specific user."""
+        if self._is_supervised:
+            return
+        from big_parental_controls.ui.pages.app_filter_page import (
+            AppFilterPage,
+        )
+
+        page_widget = AppFilterPage(user=user)
+        nav_page = Adw.NavigationPage()
+        nav_page.set_title(_("App Access"))
+        nav_page.set_child(page_widget)
+        self._nav_view.push(nav_page)
+
     def show_dns_settings(self, user: object) -> None:
         """Push DNS filter editor for a specific user."""
         if self._is_supervised:

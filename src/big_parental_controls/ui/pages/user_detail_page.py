@@ -87,6 +87,7 @@ class UserDetailPage(Gtk.Box):
 
         inner.append(self._build_summary_block())
         inner.append(self._build_profile_block())
+        inner.append(self._build_app_filter_block())
         inner.append(self._build_dns_block())
         inner.append(self._build_time_block())
 
@@ -314,6 +315,24 @@ class UserDetailPage(Gtk.Box):
         edit_row.connect(
             "activated",
             lambda _r: self._window.show_time_limits(self._user),
+        )
+        group.add(edit_row)
+        return group
+
+    def _build_app_filter_block(self) -> Adw.PreferencesGroup:
+        """App access control — link to full editor."""
+        group = Adw.PreferencesGroup()
+        group.set_title(_("App Access"))
+        edit_row = Adw.ActionRow()
+        edit_row.set_title(_("Manage Allowed Apps"))
+        edit_row.set_subtitle(
+            _("Choose which applications this user can run")
+        )
+        edit_row.set_activatable(True)
+        edit_row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+        edit_row.connect(
+            "activated",
+            lambda _r: self._window.show_app_filter(self._user),
         )
         group.add(edit_row)
         return group

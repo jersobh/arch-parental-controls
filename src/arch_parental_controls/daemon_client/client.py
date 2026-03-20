@@ -1,4 +1,4 @@
-"""D-Bus client for the big-parental-daemon system service.
+"""D-Bus client for the arch-parental-daemon system service.
 
 Communicates with `org.archparentalcontrols.ParentalMonitor1` on the system bus.
 All D-Bus calls run in a thread to avoid blocking the GTK main loop.
@@ -40,7 +40,7 @@ def _call(interface: str, method: str, *args: str) -> str | None:
 
 
 class DaemonClient:
-    """Client for big-parental-daemon D-Bus interfaces."""
+    """Client for arch-parental-daemon D-Bus interfaces."""
 
     def is_available(self) -> bool:
         """Check if the daemon is running on the system bus."""

@@ -87,6 +87,7 @@ class UserDetailPage(Gtk.Box):
 
         inner.append(self._build_summary_block())
         inner.append(self._build_profile_block())
+        inner.append(self._build_monitoring_block())
         inner.append(self._build_app_filter_block())
         inner.append(self._build_dns_block())
         inner.append(self._build_time_block())

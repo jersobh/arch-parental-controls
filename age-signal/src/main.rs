@@ -60,7 +60,6 @@ const IGNORED_PROCESSES: &[&str] = &[
     "kactivitymanagerd",
     "baloo_file",
     "kscreen_backend_launcher",
-    "big-parental-daemon",
     "arch-parental-daemon",
 ];
 

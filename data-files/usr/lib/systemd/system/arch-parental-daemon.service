@@ -5,7 +5,7 @@ After=dbus.service
 [Service]
 Type=dbus
 BusName=org.archparentalcontrols.ParentalDaemon
-ExecStart=/usr/lib/arch-parental-controls/big-parental-daemon
+ExecStart=/usr/lib/arch-parental-controls/arch-parental-daemon
 User=root
 # Hardening
 ProtectHome=read-only

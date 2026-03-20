@@ -46,8 +46,8 @@ except Exception:
     # Disable daemon
     systemctl disable --now arch-parental-daemon.service 2>/dev/null || true
 
-    rm -rf /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf
-    rm -rf /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf
+    rm -rf /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf
+    rm -rf /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf
     rmdir /etc/systemd/system/tmp.mount.d 2>/dev/null || true
     rmdir /etc/systemd/system/dev-shm.mount.d 2>/dev/null || true
 

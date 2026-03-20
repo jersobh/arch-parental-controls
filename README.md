@@ -161,7 +161,7 @@ All system-level changes go through a single `pkexec group-helper <command>` cal
 | `create-user USERNAME` | Create supervised account with safe ACL defaults |
 | `delete-user USERNAME` | Delete account, home directory, and all data |
 | `remove-supervision USERNAME` | Remove from supervised group, restore ACLs |
-| `set-age-profile USERNAME RANGE` | Persist ECA Digital age range to `/var/lib/big-parental-controls/user-profiles.json` |
+| `set-age-profile USERNAME RANGE` | Persist ECA Digital age range to `/var/lib/arch-parental-controls/user-profiles.json` |
 | `dns-set UID JSON` | Write DNS config and apply nftables redirect rules |
 | `dns-remove UID` | Remove DNS config and nftables rules |
 | `dns-restore` | Restore all nftables DNS rules from saved configs (called at boot) |
@@ -173,9 +173,9 @@ All system-level changes go through a single `pkexec group-helper <command>` cal
 
 | Service | Purpose |
 | --- | --- |
-| `big-parental-daemon.service` | Rust D-Bus daemon |
-| `big-parental-dns-restore.service` | Restore nftables DNS rules at boot |
-| `big-parental-time-check.timer` | Periodic screen time enforcement |
+| `arch-parental-daemon.service` | Rust D-Bus daemon |
+| `arch-parental-dns-restore.service` | Restore nftables DNS rules at boot |
+| `arch-parental-time-check.timer` | Periodic screen time enforcement |
 
 ## User Detail Page Layout
 
@@ -199,7 +199,7 @@ The parent can adjust this list from the app's filter page.
 ## Privacy and Security
 
 - No remote account required; no telemetry.
-- Age-range data is stored locally in `/var/lib/big-parental-controls/user-profiles.json`, written only by the privileged helper.
+- Age-range data is stored locally in `/var/lib/arch-parental-controls/user-profiles.json`, written only by the privileged helper.
 - The D-Bus policy allows `GetAgeGroup` queries from all users on the local system bus.
 
 ## Dependencies
@@ -257,7 +257,7 @@ The test suite covers:
 
 ## Localization
 
-The project uses gettext. Editable sources are in `locale/`, compiled catalogs in `big-parental-controls/usr/share/locale/`.
+The project uses gettext. Editable sources are in `locale/`, compiled catalogs in `arch-parental-controls/usr/share/locale/`.
 
 ```bash
 ./update_translations.sh

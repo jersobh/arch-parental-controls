@@ -1,0 +1,12 @@
+[Unit]
+Description=Restore Arch Parental Controls DNS Redirects
+After=network.target nftables.service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/arch-parental-controls/group-helper dns-restore
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -10,15 +10,15 @@
 
 let
   daemon = rustPlatform.buildRustPackage {
-    pname = "big-parental-daemon";
+    pname = "arch-parental-daemon";
     version = "1.0.0";
-    src = ./big-parental-daemon;
-    cargoLock.lockFile = ./big-parental-daemon/Cargo.lock;
+    src = ./arch-parental-daemon;
+    cargoLock.lockFile = ./arch-parental-daemon/Cargo.lock;
     nativeBuildInputs = [ pkg-config ];
   };
 in
 python3Packages.buildPythonApplication {
-  pname = "big-parental-controls";
+  pname = "arch-parental-controls";
   version = "1.0.0";
   pyproject = true;
   src = ./.;
@@ -44,18 +44,18 @@ python3Packages.buildPythonApplication {
   makeWrapperArgs = [ "\${gappsWrapperArgs[@]}" ];
 
   postInstall = ''
-    install -Dm755 ${daemon}/bin/big-parental-daemon $out/bin/big-parental-daemon
-    install -Dm644 big-parental-controls/usr/share/applications/*.desktop \
+    install -Dm755 ${daemon}/bin/arch-parental-daemon $out/bin/arch-parental-daemon
+    install -Dm644 arch-parental-controls/usr/share/applications/*.desktop \
       -t $out/share/applications/
-    install -Dm644 big-parental-controls/usr/share/icons/hicolor/scalable/apps/*.svg \
+    install -Dm644 arch-parental-controls/usr/share/icons/hicolor/scalable/apps/*.svg \
       -t $out/share/icons/hicolor/scalable/apps/
   '';
 
   meta = with lib; {
     description = "Parental controls for BigLinux";
-    homepage = "https://github.com/biglinux/big-parental-controls";
+    homepage = "https://github.com/biglinux/arch-parental-controls";
     license = licenses.gpl3Plus;
     platforms = platforms.linux;
-    mainProgram = "big-parental-controls";
+    mainProgram = "arch-parental-controls";
   };
 }

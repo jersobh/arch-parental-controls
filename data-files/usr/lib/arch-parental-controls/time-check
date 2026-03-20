@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check supervised users time limits (daily minutes + schedule).
 
-Executed by big-parental-time-check.timer every minute.
+Executed by arch-parental-time-check.timer every minute.
 Terminates active graphical sessions that have exceeded their limits.
 """
 

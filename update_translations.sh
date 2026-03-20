@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-DOMAIN="big-parental-controls"
-SRC_DIR="src/big_parental_controls"
-LOCALE_DIR="big-parental-controls/locale"
+DOMAIN="arch-parental-controls"
+SRC_DIR="src/arch_parental_controls"
+LOCALE_DIR="arch-parental-controls/locale"
 POT_FILE="$LOCALE_DIR/$DOMAIN.pot"
-MO_BASE="big-parental-controls/usr/share/locale"
+MO_BASE="arch-parental-controls/usr/share/locale"
 
 echo "=== $DOMAIN — update translations ==="
 

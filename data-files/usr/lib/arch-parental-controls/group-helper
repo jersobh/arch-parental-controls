@@ -7,8 +7,9 @@ GROUP="supervised"
 STATE_DIR="/var/lib/arch-parental-controls"
 ACL_STATE="$STATE_DIR/acl-blocks.json"
 
-# Ensure state directory exists
+# Ensure state directory exists and is readable by the UI
 mkdir -p "$STATE_DIR"
+chmod 755 "$STATE_DIR"
 
 # Validate username: only alphanumeric, dash, underscore
 validate_username() {
@@ -81,11 +82,11 @@ case "$1" in
         else
             CURRENT="{}"
         fi
-        BPC_STATE="$CURRENT" BPC_USER="$USERNAME" python3 -c '
+        APC_STATE="$CURRENT" APC_USER="$USERNAME" python3 -c '
 import json, os
-state = json.loads(os.environ["BPC_STATE"])
+state = json.loads(os.environ["APC_STATE"])
 blocks = [p for p in ["/usr/bin/pacman","/usr/bin/pamac-manager","/usr/bin/pamac-installer","/usr/bin/pamac-daemon","/usr/bin/yay","/usr/bin/paru","/usr/bin/flatpak","/usr/bin/snap","/usr/bin/ssh","/usr/bin/rustdesk"] if os.path.exists(p)]
-state[os.environ["BPC_USER"]] = blocks
+state[os.environ["APC_USER"]] = blocks
 print(json.dumps(state, indent=2))
 ' > "$ACL_STATE" 2>/dev/null || true
         chmod 644 "$ACL_STATE"
@@ -114,12 +115,12 @@ DEOF
 
         # Enable noexec on /tmp and /dev/shm
         mkdir -p /etc/systemd/system/tmp.mount.d
-        cat > /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf << TEOF
+        cat > /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf << TEOF
 [Mount]
 Options=mode=1777,strictatime,noexec,nosuid,nodev
 TEOF
         mkdir -p /etc/systemd/system/dev-shm.mount.d
-        cat > /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf << SEOF
+        cat > /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf << SEOF
 [Mount]
 Options=nosuid,noexec,nodev
 SEOF
@@ -167,11 +168,11 @@ SEOF
         else
             CURRENT="{}"
         fi
-        BPC_STATE="$CURRENT" BPC_USER="$USERNAME" python3 -c '
+        APC_STATE="$CURRENT" APC_USER="$USERNAME" python3 -c '
 import json, os
-state = json.loads(os.environ["BPC_STATE"])
+state = json.loads(os.environ["APC_STATE"])
 blocks = [p for p in ["/usr/bin/pacman","/usr/bin/pamac-manager","/usr/bin/pamac-installer","/usr/bin/pamac-daemon","/usr/bin/yay","/usr/bin/paru","/usr/bin/flatpak","/usr/bin/snap","/usr/bin/ssh","/usr/bin/rustdesk"] if os.path.exists(p)]
-state[os.environ["BPC_USER"]] = blocks
+state[os.environ["APC_USER"]] = blocks
 print(json.dumps(state, indent=2))
 ' > "$ACL_STATE" 2>/dev/null || true
         chmod 644 "$ACL_STATE"
@@ -199,12 +200,12 @@ DEOF
 
         # Enable noexec on /tmp and /dev/shm
         mkdir -p /etc/systemd/system/tmp.mount.d
-        cat > /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf << TEOF
+        cat > /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf << TEOF
 [Mount]
 Options=mode=1777,strictatime,noexec,nosuid,nodev
 TEOF
         mkdir -p /etc/systemd/system/dev-shm.mount.d
-        cat > /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf << SEOF
+        cat > /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf << SEOF
 [Mount]
 Options=nosuid,noexec,nodev
 SEOF
@@ -237,7 +238,7 @@ SEOF
     acl-reapply)
         # Re-apply all ACLs from state file (used by pacman hook)
         [[ -f "$ACL_STATE" ]] || exit 0
-        BPC_ACL_FILE="$ACL_STATE" python3 -c '
+        APC_ACL_FILE="$ACL_STATE" python3 -c '
 import json, subprocess, os, sys
 
 # Quick check: does /usr/bin filesystem support ACLs?
@@ -248,7 +249,7 @@ if os.path.exists(probe):
     if r.returncode != 0:
         sys.exit(0)  # filesystem does not support ACLs — skip silently
 
-with open(os.environ["BPC_ACL_FILE"]) as f:
+with open(os.environ["APC_ACL_FILE"]) as f:
     state = json.load(f)
 count = 0
 for user, paths in state.items():
@@ -346,14 +347,14 @@ EOF
         systemctl daemon-reload
         ;;
     noexec-tmp-enable)
-        # Enable noexec on /tmp and /dev/shm via systemd drop-in + immediate remount
-        mkdir -p /etc/systemd/system/tmp.mount.d
-        cat > /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf << EOF
+    # Enable noexec on /tmp and /dev/shm via systemd drop-in + immediate remount
+    mkdir -p /etc/systemd/system/tmp.mount.d
+    cat > /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf << EOF
 [Mount]
 Options=mode=1777,strictatime,noexec,nosuid,nodev
 EOF
-        mkdir -p /etc/systemd/system/dev-shm.mount.d
-        cat > /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf << EOF
+    mkdir -p /etc/systemd/system/dev-shm.mount.d
+    cat > /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf << EOF
 [Mount]
 Options=nosuid,noexec,nodev
 EOF
@@ -364,8 +365,8 @@ EOF
         ;;
     noexec-tmp-disable)
         # Remove noexec drop-ins for /tmp and /dev/shm + immediate remount
-        rm -f /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf
-        rm -f /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf
+        rm -f /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf
+        rm -f /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf
         rmdir /etc/systemd/system/tmp.mount.d 2>/dev/null || true
         rmdir /etc/systemd/system/dev-shm.mount.d 2>/dev/null || true
         systemctl daemon-reload
@@ -399,9 +400,9 @@ EOF
         chmod 644 "$STATE_DIR/time-limits.json"
         ;;
     time-timer-enable)
-        # Time enforcement is handled by big-parental-daemon (always running).
+        # Time enforcement is handled by arch-parental-daemon (always running).
         # Ensure the daemon is active.
-        systemctl start big-parental-daemon 2>/dev/null || true
+        systemctl start arch-parental-daemon 2>/dev/null || true
         ;;
     time-timer-disable)
         # No-op: daemon stays running; it only enforces limits if rules exist.
@@ -416,10 +417,10 @@ EOF
 
         # 1. Remove all ACLs from state
         if [[ -f "$ACL_STATE" ]]; then
-            BPC_ACL_FILE="$ACL_STATE" BPC_USER="$USERNAME" python3 -c '
+            APC_ACL_FILE="$ACL_STATE" APC_USER="$USERNAME" python3 -c '
 import json, subprocess, os
-acl_file = os.environ["BPC_ACL_FILE"]
-username = os.environ["BPC_USER"]
+acl_file = os.environ["APC_ACL_FILE"]
+username = os.environ["APC_USER"]
 with open(acl_file) as f:
     state = json.load(f)
 if username in state:
@@ -455,10 +456,10 @@ if username in state:
         # 5. Remove time limits from state
         LIMITS_FILE="$STATE_DIR/time-limits.json"
         if [[ -f "$LIMITS_FILE" ]]; then
-            BPC_LIMITS_FILE="$LIMITS_FILE" BPC_USER="$USERNAME" python3 -c '
+            APC_LIMITS_FILE="$LIMITS_FILE" APC_USER="$USERNAME" python3 -c '
 import json, os
-limits_file = os.environ["BPC_LIMITS_FILE"]
-username = os.environ["BPC_USER"]
+limits_file = os.environ["APC_LIMITS_FILE"]
+username = os.environ["APC_USER"]
 with open(limits_file) as f:
     data = json.load(f)
 data.pop(username, None)
@@ -483,15 +484,15 @@ with open(limits_file, "w") as f:
         fi
         if [[ -z "$MEMBERS" ]]; then
             # No more supervised users — clean up system-wide protections
-            rm -f /etc/systemd/system/tmp.mount.d/big-parental-noexec.conf
-            rm -f /etc/systemd/system/dev-shm.mount.d/big-parental-noexec.conf
+            rm -f /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf
+            rm -f /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf
             rmdir /etc/systemd/system/tmp.mount.d 2>/dev/null || true
             rmdir /etc/systemd/system/dev-shm.mount.d 2>/dev/null || true
             mount -o remount,exec /tmp 2>/dev/null || true
             mount -o remount,exec /dev/shm 2>/dev/null || true
-            systemctl disable --now big-parental-time-check.timer 2>/dev/null || true
-            rm -f /etc/systemd/system/big-parental-time-check.timer
-            rm -f /etc/systemd/system/big-parental-time-check.service
+            systemctl disable --now arch-parental-time-check.timer 2>/dev/null || true
+            rm -f /etc/systemd/system/arch-parental-time-check.timer
+            rm -f /etc/systemd/system/arch-parental-time-check.service
             # (daemon keeps running — it will find no rules and do nothing)
         fi
         systemctl daemon-reload
@@ -553,10 +554,10 @@ with open(limits_file, "w") as f:
         fi
 
         # Parse current user blocks from state
-        EXISTING_BLOCKS=$(BPC_STATE="$CURRENT_STATE" BPC_USER="$USERNAME" python3 -c '
+        EXISTING_BLOCKS=$(APC_STATE="$CURRENT_STATE" APC_USER="$USERNAME" python3 -c '
 import json, os
-state = json.loads(os.environ["BPC_STATE"])
-for p in state.get(os.environ["BPC_USER"], []):
+state = json.loads(os.environ["APC_STATE"])
+for p in state.get(os.environ["APC_USER"], []):
     print(p)
 ' 2>/dev/null || true)
 
@@ -600,13 +601,13 @@ DEOF
         fi
 
         # Update ACL state JSON
-        BPC_STATE="$CURRENT_STATE" BPC_USER="$USERNAME" BPC_BLOCK="$BLOCK_CSV" BPC_UNBLOCK="$UNBLOCK_CSV" python3 -c '
+        APC_STATE="$CURRENT_STATE" APC_USER="$USERNAME" APC_BLOCK="$BLOCK_CSV" APC_UNBLOCK="$UNBLOCK_CSV" python3 -c '
 import json, os
-state = json.loads(os.environ["BPC_STATE"])
-username = os.environ["BPC_USER"]
+state = json.loads(os.environ["APC_STATE"])
+username = os.environ["APC_USER"]
 current = set(state.get(username, []))
-block_csv = os.environ.get("BPC_BLOCK", "")
-unblock_csv = os.environ.get("BPC_UNBLOCK", "")
+block_csv = os.environ.get("APC_BLOCK", "")
+unblock_csv = os.environ.get("APC_UNBLOCK", "")
 if block_csv:
     for p in block_csv.split(","):
         if os.path.exists(p):
@@ -631,9 +632,9 @@ print(json.dumps(state, indent=2))
         echo "$3" > "$DNS_DIR/$2.json"
         chmod 644 "$DNS_DIR/$2.json"
         # Remove existing nftables rules for this UID
-        NFT_TABLE="big_parental"
+        NFT_TABLE="arch_parental"
         NFT_CHAIN="dns_redirect"
-        TAG="bpc-uid-$2"
+        TAG="apc-uid-$2"
         nft add table ip "$NFT_TABLE" 2>/dev/null || true
         nft add chain ip "$NFT_TABLE" "$NFT_CHAIN" '{ type nat hook output priority -100 ; }' 2>/dev/null || true
         # Remove old rules for this UID
@@ -660,9 +661,9 @@ print(json.dumps(state, indent=2))
         # Remove login script hook
         rm -f "/etc/profile.d/big-dns-$2.sh"
         # Remove nftables rules for this UID
-        NFT_TABLE="big_parental"
+        NFT_TABLE="arch_parental"
         NFT_CHAIN="dns_redirect"
-        TAG="bpc-uid-$2"
+        TAG="apc-uid-$2"
         while IFS= read -r line; do
             if [[ "$line" == *"$TAG"* ]]; then
                 handle=$(echo "$line" | grep -oP '(?<=# handle )\d+')
@@ -672,9 +673,9 @@ print(json.dumps(state, indent=2))
         ;;
     dns-restore)
         # Restore all nftables DNS redirect rules from saved config files.
-        # Called at boot by big-parental-dns-restore.service (no pkexec — runs as root).
+        # Called at boot by arch-parental-dns-restore.service (no pkexec — runs as root).
         DNS_DIR="/etc/arch-parental-controls/dns"
-        NFT_TABLE="big_parental"
+        NFT_TABLE="arch_parental"
         NFT_CHAIN="dns_redirect"
         [[ -d "$DNS_DIR" ]] || exit 0
         nft add table ip "$NFT_TABLE" 2>/dev/null || true
@@ -684,7 +685,7 @@ print(json.dumps(state, indent=2))
             uid=$(basename "$cfg" .json)
             [[ "$uid" =~ ^[0-9]+$ ]] || continue
             dns1=$(python3 -c "import json; d=json.load(open('$cfg')); print(d['dns1'])" 2>/dev/null) || continue
-            TAG="bpc-uid-$uid"
+            TAG="apc-uid-$uid"
             # Remove stale rules for this UID before adding fresh ones
             while IFS= read -r line; do
                 if [[ "$line" == *"$TAG"* ]]; then

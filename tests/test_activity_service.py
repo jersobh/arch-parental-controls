@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from big_parental_controls.services.activity_service import (
+from arch_parental_controls.services.activity_service import (
     ActivityService,
     AppUsageEntry,
     SessionEntry,
@@ -209,11 +209,11 @@ class TestAppUsage:
         assert result == []
 
     def test_get_day_app_usage(self, tmp_path: object, monkeypatch: object) -> None:
-        from big_parental_controls.core import constants
+        from arch_parental_controls.core import constants
         monkeypatch.setattr(constants, "ACTIVITY_DIR", str(tmp_path))
 
         # Also patch the import in activity_service
-        import big_parental_controls.services.activity_service as mod
+        import arch_parental_controls.services.activity_service as mod
         monkeypatch.setattr(mod, "ACTIVITY_DIR", str(tmp_path))
 
         user_dir = tmp_path / "testuser"

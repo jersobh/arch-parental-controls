@@ -1,0 +1,12 @@
+[Unit]
+Description=Arch Linux Age Signal D-Bus Service
+After=dbus.service
+
+[Service]
+Type=dbus
+BusName=org.archparentalcontrols.AgeSignal
+ExecStart=/usr/bin/big-age-signal
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

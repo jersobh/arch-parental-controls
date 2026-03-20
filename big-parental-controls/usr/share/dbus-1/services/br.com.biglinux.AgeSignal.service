@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=br.com.biglinux.AgeSignal
-Exec=/usr/bin/big-age-signal

@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.archparentalcontrols.ParentalDaemon
+Exec=/usr/bin/arch-parental-daemon

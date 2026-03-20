@@ -1,0 +1,19 @@
+[Unit]
+Description=Arch Linux Parental Controls Daemon
+After=dbus.service
+
+[Service]
+Type=dbus
+BusName=org.archparentalcontrols.ParentalDaemon
+ExecStart=/usr/lib/arch-parental-controls/big-parental-daemon
+User=root
+# Hardening
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/var/lib/arch-parental-controls
+PrivateTmp=true
+NoNewPrivileges=false
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH
+
+[Install]
+WantedBy=multi-user.target

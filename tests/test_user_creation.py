@@ -6,15 +6,6 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-SRC_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "big-parental-controls",
-    "usr",
-    "share",
-    "biglinux",
-    "parental-controls",
-)
-sys.path.insert(0, SRC_DIR)
 
 # The username regex used in users_page.py
 USERNAME_REGEX = re.compile(r"^[a-z][a-z0-9_-]*$")
@@ -98,7 +89,7 @@ class TestCreateFullSubprocess(unittest.TestCase):
         password = "secure_pass"
         username = "testchild"
         fullname = "Test Child"
-        helper = "/usr/lib/big-parental-controls/group-helper"
+        helper = "/usr/lib/arch-parental-controls/group-helper"
 
         mock_run.return_value = MagicMock(returncode=0, stderr="")
 
@@ -129,7 +120,7 @@ class TestCreateFullSubprocess(unittest.TestCase):
         )
 
         result = subprocess.run(
-            ["pkexec", "/usr/lib/big-parental-controls/group-helper",
+            ["pkexec", "/usr/lib/arch-parental-controls/group-helper",
              "create-full", "test", "Test"],
             input="password",
             capture_output=True,
@@ -149,7 +140,7 @@ class TestCreateFullSubprocess(unittest.TestCase):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
 
         subprocess.run(
-            ["pkexec", "/usr/lib/big-parental-controls/group-helper",
+            ["pkexec", "/usr/lib/arch-parental-controls/group-helper",
              "create-full", "child1", "Child One"],
             input="pass123",
             capture_output=True,
@@ -170,7 +161,7 @@ class TestCreateFullSubprocess(unittest.TestCase):
 
         # Should NOT raise
         result = subprocess.run(
-            ["pkexec", "/usr/lib/big-parental-controls/group-helper",
+            ["pkexec", "/usr/lib/arch-parental-controls/group-helper",
              "create-full", "test", "Test"],
             input="pass",
             capture_output=True,

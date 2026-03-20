@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from big_parental_controls.daemon_client.client import DaemonClient
+from arch_parental_controls.daemon_client.client import DaemonClient
 
 
 @pytest.fixture
@@ -51,19 +51,19 @@ class TestParseJsonString:
 class TestGetMonitoredUsers:
     """Tests for parsing monitored users list."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_multiple_users(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = 'as 2 "minibruno" "tata"'
         result = client.get_monitored_users()
         assert result == ["minibruno", "tata"]
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_empty_list(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = "as 0"
         result = client.get_monitored_users()
         assert result == []
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_daemon_unavailable(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = None
         result = client.get_monitored_users()
@@ -73,22 +73,22 @@ class TestGetMonitoredUsers:
 class TestEnableDisable:
     """Tests for monitoring toggle methods."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_enable_success(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = "b true"
         assert client.enable_user("minibruno", 1002) is True
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_enable_failure(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = None
         assert client.enable_user("minibruno", 1002) is False
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_disable_success(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = "b true"
         assert client.disable_user("minibruno") is True
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_disable_failure(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = "b false"
         assert client.disable_user("minibruno") is False
@@ -97,7 +97,7 @@ class TestEnableDisable:
 class TestGetDailyTotals:
     """Tests for daily usage parsing."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_valid_response(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = (
             's "{\\"2026-03-17\\": 120, \\"2026-03-18\\": 45}"'
@@ -105,7 +105,7 @@ class TestGetDailyTotals:
         result = client.get_daily_totals("minibruno", 2)
         assert result == {"2026-03-17": 120, "2026-03-18": 45}
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_daemon_down(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = None
         result = client.get_daily_totals("minibruno")
@@ -115,7 +115,7 @@ class TestGetDailyTotals:
 class TestGetHourlyDistribution:
     """Tests for hourly distribution parsing."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_valid_24_slots(self, mock_call, client: DaemonClient) -> None:
         slots = [0] * 24
         slots[10] = 30
@@ -126,7 +126,7 @@ class TestGetHourlyDistribution:
         assert result[10] == 30
         assert result[14] == 60
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_invalid_length_returns_zeros(
         self, mock_call, client: DaemonClient
     ) -> None:
@@ -134,7 +134,7 @@ class TestGetHourlyDistribution:
         result = client.get_hourly_distribution("minibruno")
         assert result == [0] * 24
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_daemon_down(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = None
         result = client.get_hourly_distribution("minibruno")
@@ -144,7 +144,7 @@ class TestGetHourlyDistribution:
 class TestGetAppUsage:
     """Tests for app usage parsing."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_valid_apps(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = (
             's "[{\\"app\\": \\"firefox\\", '
@@ -156,7 +156,7 @@ class TestGetAppUsage:
         assert result[0]["app"] == "firefox"
         assert result[0]["minutes"] == 90
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_empty_usage(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = 's "[]"'
         result = client.get_app_usage("minibruno")
@@ -166,12 +166,12 @@ class TestGetAppUsage:
 class TestIsAvailable:
     """Tests for daemon availability check."""
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_available(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = 'v s "1.0.0"'
         assert client.is_available() is True
 
-    @patch("big_parental_controls.daemon_client.client._call")
+    @patch("arch_parental_controls.daemon_client.client._call")
     def test_not_available(self, mock_call, client: DaemonClient) -> None:
         mock_call.return_value = None
         assert client.is_available() is False

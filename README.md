@@ -1,8 +1,11 @@
 <div align="center">
 
-# BigLinux Parental Controls
+# Arch Parental Controls
 
-A native Linux parental controls suite for supervised accounts, safer browsing, screen time limits, and local-first child protection on BigLinux.
+> [!NOTE]
+> This project is a fork of **BigLinux Parental Controls**, adapted for Arch Linux and general distribution compatibility.
+
+A native Linux parental controls suite for supervised accounts, safer browsing, screen time limits, and local-first child protection.
 
 <p>
   <img alt="Platform" src="https://img.shields.io/badge/platform-Linux-2d6cdf">
@@ -16,9 +19,9 @@ A native Linux parental controls suite for supervised accounts, safer browsing, 
 
 ## Overview
 
-BigLinux Parental Controls is a desktop application that helps parents and guardians create safer Linux accounts for children and teenagers without moving data to the cloud.
+Arch Parental Controls is a desktop application that helps parents and guardians create safer Linux accounts for children and teenagers without moving data to the cloud.
 
-The project combines a GTK4 + libadwaita control panel, privileged system helpers, a Rust D-Bus service for ECA Digital age-range signaling, and system integrations such as ACLs, AccountsService, malcontent, PAM time rules, nftables DNS redirection, and polkit authentication.
+The project combines a GTK4 + libadwaita control panel, privileged system helpers, a Rust D-Bus service for ECA Digital age-range signaling, and system integrations such as ACLs, AccountsService, PAM time rules, nftables DNS redirection, and polkit authentication.
 
 All enforcement happens locally. No remote account or cloud sync is required.
 
@@ -98,7 +101,7 @@ WHO DOWNLOADS THE ISO AND INSTALLS THE SYSTEM
 │  • Parent can view activity, export data, or delete it all  │
 │  • Activity records auto-deleted after 30 days              │
 │  • D-Bus age signal available for other apps on this device  │
-│    (br.com.biglinux.AgeSignal1.GetAgeGroup) — local only    │
+│    (org.archparentalcontrols.AgeSignal1.GetAgeGroup) — local only    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -137,17 +140,17 @@ WHO DOWNLOADS THE ISO AND INSTALLS THE SYSTEM
 
 The project has four main parts:
 
-1. **`src/big_parental_controls/`** — Main GTK4 application (Python).
-2. **`big-parental-controls/usr/lib/big-parental-controls/group-helper`** — Privileged bash helper run through `pkexec`. All operations that touch protected paths go through this script.
-3. **`big-age-signal/`** — Rust D-Bus service (`br.com.biglinux.ParentalDaemon`) that exposes age-range information on the system bus. Other apps on the same device can query `GetAgeGroup(uid)` to get the ECA Digital range for a supervised user.
-4. **`big-parental-controls/usr/bin/big-supervised-indicator`** — Lightweight indicator for supervised sessions.
+1. **`src/arch_parental_controls/`** — Main GTK4 application (Python).
+2. **`/usr/lib/arch-parental-controls/group-helper`** — Privileged bash helper run through `pkexec`. All operations that touch protected paths go through this script.
+3. **`age-signal/`** — Rust D-Bus service (`org.archparentalcontrols.ParentalDaemon`) that exposes age-range information on the system bus. Other apps on the same device can query `GetAgeGroup(uid)` to get the ECA Digital range for a supervised user.
+4. **`/usr/bin/arch-supervised-indicator`** — Lightweight indicator for supervised sessions.
 
 ### D-Bus Interface
 
-The Rust daemon exposes two interfaces on `br.com.biglinux.ParentalDaemon`:
+The Rust daemon exposes two interfaces on `org.archparentalcontrols.ParentalDaemon`:
 
-- `br.com.biglinux.AgeSignal1.GetAgeGroup(uid: u32) → String` — Returns the ECA Digital range (`"0-12"`, `"13-15"`, `"16-17"`, `"18+"`) stored for the given UID.
-- `br.com.biglinux.ParentalMonitor1` — Screen time and session tracking.
+- `org.archparentalcontrols.AgeSignal1.GetAgeGroup(uid: u32) → String` — Returns the ECA Digital range (`"0-12"`, `"13-15"`, `"16-17"`, `"18+"`) stored for the given UID.
+- `org.archparentalcontrols.ParentalMonitor1` — Screen time and session tracking.
 
 ### Privileged Operations (group-helper)
 
@@ -214,23 +217,28 @@ Build:
 
 See `pkgbuild/PKGBUILD` for the full list.
 
-## Build and Install
+### Build and Install (Arch Linux)
 
-### Package Build (recommended)
-
-```bash
-cd pkgbuild
-makepkg -si
-```
-
-Several features depend on installed paths, polkit policies, systemd services, and helper scripts — running from source alone is not enough for full functionality.
-
-### Rust Service
+The easiest way to build and install on Arch Linux is using the `Makefile`:
 
 ```bash
-cd big-age-signal
-cargo build --release
+# 1. Install build dependencies
+make install-deps
+
+# 2. Build the Rust daemon, Python package, and AUR package
+make all
+
+# 3. Install the generated package
+sudo pacman -U pkgbuild/*.pkg.tar.zst
 ```
+
+### Manual Build
+
+If you prefer to run steps individually:
+
+1. **Rust Service**: `cd age-signal && cargo build --release`
+2. **Python Package**: `python -m build --wheel`
+3. **AUR Package**: `cd pkgbuild && makepkg -si`
 
 ## Testing
 
@@ -299,9 +307,9 @@ Bruno Goncalves and the BigLinux team.
 
 *Today is a sad day for humanity. Just because you have no interest in compiling kernels, editing source code, running Docker or Podman containers, spinning up virtual machines, benchmarking DNS to shave a few milliseconds off response times, building your own VPNs, or simply taking apart how things work for the pure joy of learning — that does not mean you should support laws that deny children and teenagers the freedom to do exactly those things. I say this without hypocrisy: I did most of them before I turned 18. So I will say it again — from where I stand, today is a sad day for humanity.*
 
-*And I am publishing this program in an attempt to keep BigLinux alive and out of legal trouble — one of the longest-running free software projects in Brazil, maintained by nerds, voluntarily, and completely free of charge to anyone who wants to use it or learn from it, driven only by our attachment to shared knowledge and our desire to understand how things work.*
+*And I am publishing this program in an attempt to keep Arch Parental Controls alive and out of legal trouble — one of the longest-running free software projects in Brazil (originated from BigLinux), maintained by nerds, voluntarily, and completely free of charge to anyone who wants to use it or learn from it, driven only by our attachment to shared knowledge and our desire to understand how things work.*
 
-— Bruno Goncalves
+— Bruno Goncalves (Original Author)
 
 ## Screenshots
 

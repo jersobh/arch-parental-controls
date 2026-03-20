@@ -9,17 +9,8 @@ from unittest.mock import patch
 import sys
 
 # Add the source directory to path
-SRC_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "big-parental-controls",
-    "usr",
-    "share",
-    "biglinux",
-    "parental-controls",
-)
-sys.path.insert(0, SRC_DIR)
 
-from services.polkit_service import (
+from arch_parental_controls.services.polkit_service import (
     POLKIT_RULES_TEMPLATE,
     rules_installed,
 )
@@ -30,15 +21,15 @@ class TestPolkitService(unittest.TestCase):
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
-        self.rules_file = os.path.join(self.tmpdir, "50-big-parental-controls.rules")
+        self.rules_file = os.path.join(self.tmpdir, "50-arch-parental-controls.rules")
 
     def tearDown(self):
         if os.path.exists(self.rules_file):
             os.remove(self.rules_file)
         os.rmdir(self.tmpdir)
 
-    @patch("services.polkit_service.POLKIT_RULES_DIR")
-    @patch("services.polkit_service.RULES_FILE")
+    @patch("arch_parental_controls.services.polkit_service.POLKIT_RULES_DIR")
+    @patch("arch_parental_controls.services.polkit_service.POLKIT_RULES_FILE")
     def test_install_polkit_rules_creates_file(self, mock_file, mock_dir):
         mock_dir.__str__ = lambda s: self.tmpdir
         mock_file.__str__ = lambda s: self.rules_file
@@ -86,14 +77,14 @@ class TestPolkitService(unittest.TestCase):
     def test_rules_file_detection(self):
         """Test rules_installed() detection."""
         # Before creation
-        with patch("services.polkit_service.RULES_FILE", self.rules_file):
+        with patch("arch_parental_controls.services.polkit_service.POLKIT_RULES_FILE", self.rules_file):
             self.assertFalse(rules_installed())
 
         # After creation
         with open(self.rules_file, "w") as f:
             f.write("test")
 
-        with patch("services.polkit_service.RULES_FILE", self.rules_file):
+        with patch("arch_parental_controls.services.polkit_service.POLKIT_RULES_FILE", self.rules_file):
             self.assertTrue(rules_installed())
 
 

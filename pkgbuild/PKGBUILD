@@ -1,4 +1,3 @@
-# Maintainer: Arch Linux Community
 pkgname=arch-parental-controls
 pkgver=1.0.0
 pkgrel=1
@@ -6,10 +5,10 @@ pkgdesc="Arch Linux Parental Controls for supervised accounts"
 arch=('x86_64')
 url="https://github.com/jersobh/arch-parental-controls"
 license=('GPL3')
-depends=('python-gobject' 'gtk4' 'libadwaita' 'polkit' 'nftables' 'systemd' 'acl')
-makedepends=('cargo' 'python-build' 'python-installer' 'python-setuptools' 'python-wheel' 'gettext')
+depends=('python-gobject' 'gtk4' 'libadwaita' 'polkit' 'nftables' 'systemd' 'acl' 'curl')
+makedepends=('cargo' 'python-build' 'python-installer' 'python-setuptools' 'python-wheel' 'gettext' 'git')
 install="$pkgname.install"
-source=("arch-parental-controls-1.0.0.tar.gz") # Placeholder, usually points to git or release
+source=("$pkgname::git+$url.git#tag=v$pkgver")
 sha256sums=('SKIP')
 
 build() {

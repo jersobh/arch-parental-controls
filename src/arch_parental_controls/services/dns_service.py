@@ -114,3 +114,43 @@ class DnsService:
     def list_providers() -> dict:
         """Return the available DNS providers."""
         return DNS_PROVIDERS
+
+    def set_hosts_filter(self, categories: list[str]) -> bool:
+        """Enable or disable system-wide hosts-based filtering with specific categories."""
+        if not categories:
+            cmd = ["pkexec", GROUP_HELPER, "dns-hosts-disable"]
+        else:
+            # Sort categories and join with hyphen for the Steven Black URL structure
+            combo = "-".join(sorted(categories))
+            cmd = ["pkexec", GROUP_HELPER, "dns-hosts-enable", combo]
+
+        try:
+            subprocess.run(
+                cmd,
+                check=True,
+                timeout=120,  # Downloading can take a while
+                capture_output=True,
+            )
+            return True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            return False
+
+    def get_hosts_filter_status(self) -> list[str]:
+        """Check which hosts-based filtering categories are active."""
+        try:
+            with open("/etc/hosts") as f:
+                content = f.read()
+                if "# >>> APC HOSTS START" not in content:
+                    return []
+
+                # Try to find the combo name in the marker: "# >>> APC HOSTS START (combo)"
+                import re
+                match = re.search(r"# >>> APC HOSTS START \((.*?)\)", content)
+                if match:
+                    combo = match.group(1)
+                    return combo.split("-")
+
+                # Fallback for legacy markers
+                return ["gambling", "porn"]
+        except OSError:
+            return []

@@ -4,6 +4,9 @@ post_install() {
 
     # Enable the daemon (handles activity monitoring + time enforcement)
     systemctl enable --now arch-parental-daemon.service 2>/dev/null || true
+
+    # Enable the DNS restore service (ensures web filtering works persistently)
+    systemctl enable --now arch-parental-dns-restore.service 2>/dev/null || true
 }
 
 post_upgrade() {
@@ -43,8 +46,9 @@ except Exception:
     rm -f /etc/systemd/system/arch-parental-time-check.timer
     rm -f /etc/systemd/system/arch-parental-time-check.service
 
-    # Disable daemon
+    # Disable daemon and DNS restore service
     systemctl disable --now arch-parental-daemon.service 2>/dev/null || true
+    systemctl disable --now arch-parental-dns-restore.service 2>/dev/null || true
 
     rm -rf /etc/systemd/system/tmp.mount.d/arch-parental-noexec.conf
     rm -rf /etc/systemd/system/dev-shm.mount.d/arch-parental-noexec.conf

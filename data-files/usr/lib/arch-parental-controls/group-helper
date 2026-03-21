@@ -750,6 +750,46 @@ with open(profiles_file, "w") as f:
 os.chmod(profiles_file, 0o644)
 PYEOF
         ;;
+    dns-hosts-enable)
+        # Usage: dns-hosts-enable <combination>
+        COMBO="${2:-gambling-porn}"
+        HOSTS_URL="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${COMBO}/hosts"
+        MARKER_START="# >>> APC HOSTS START"
+        MARKER_END="# <<< APC HOSTS END"
+        
+        # Store combo for updates
+        mkdir -p /etc/arch-parental-controls/dns
+        echo "$COMBO" > /etc/arch-parental-controls/dns/hosts_combo
+        
+        TMP_HOSTS=$(mktemp)
+        if curl -sSf "$HOSTS_URL" -o "$TMP_HOSTS"; then
+            # Remove existing block if any
+            sed -i "/$MARKER_START/,/$MARKER_END/d" /etc/hosts
+            echo "$MARKER_START ($COMBO)" >> /etc/hosts
+            cat "$TMP_HOSTS" >> /etc/hosts
+            echo "$MARKER_END" >> /etc/hosts
+            rm -f "$TMP_HOSTS"
+        else
+            rm -f "$TMP_HOSTS"
+            echo "Failed to download hosts file from $HOSTS_URL" >&2
+            exit 1
+        fi
+        ;;
+    dns-hosts-disable)
+        # Usage: dns-hosts-disable
+        MARKER_START="# >>> APC HOSTS START"
+        MARKER_END="# <<< APC HOSTS END"
+        sed -i "/$MARKER_START/,/$MARKER_END/d" /etc/hosts
+        rm -f /etc/arch-parental-controls/dns/hosts_combo
+        ;;
+    dns-hosts-update)
+        # Usage: dns-hosts-update
+        MARKER_START="# >>> APC HOSTS START"
+        if grep -q "$MARKER_START" /etc/hosts; then
+            COMBO=$(cat /etc/arch-parental-controls/dns/hosts_combo 2>/dev/null || echo "gambling-porn")
+            "$0" dns-hosts-enable "$COMBO"
+        fi
+        ;;
     *)
         echo "Unknown command: $1" >&2
         exit 1

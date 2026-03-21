@@ -74,6 +74,10 @@ DNS_PROVIDERS: dict[str, dict[str, str]] = {
     },
 }
 
+# DNS hosts-based filtering
+HOSTS_CATEGORIES = ["fakenews", "gambling", "porn", "social"]
+HOSTS_BASE_URL = "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates"
+
 # Default supervised blocks (package managers, network tools)
 DEFAULT_SUPERVISED_BLOCKS: list[str] = [
     "/usr/bin/pamac-manager",

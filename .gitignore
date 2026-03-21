@@ -17,7 +17,7 @@ htmlcov/
 *.log
 
 # Rust / Cargo
-big-age-signal/target/
+age-signal/target/
 Cargo.lock
 
 # GTK compiled resources

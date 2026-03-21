@@ -784,9 +784,11 @@ async fn monitor_loop(state: Arc<Mutex<MonitorState>>) {
         };
 
         for user in &monitored {
-            let processes = scan_user_processes(user.uid);
-            if !processes.is_empty() {
-                append_snapshot(&user.username, &processes);
+            if get_active_graphical_session(&user.username).is_some() {
+                let processes = scan_user_processes(user.uid);
+                if !processes.is_empty() {
+                    append_snapshot(&user.username, &processes);
+                }
             }
         }
 

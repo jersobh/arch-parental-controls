@@ -191,6 +191,35 @@ class DnsPage(Gtk.Box):
         self._custom_group.add(self._dns2_row)
 
         inner.append(self._custom_group)
+        
+        # ── Additional Protections ────────────────────────────
+        self._extra_group = Adw.PreferencesGroup()
+        self._extra_group.set_title(_("System-wide Protection"))
+        self._extra_group.set_description(
+            _(
+                "These filters apply to all users on this computer by "
+                "modifying the system's hosts file."
+            )
+        )
+
+        from arch_parental_controls.core.constants import HOSTS_CATEGORIES
+        
+        labels = {
+            "fakenews": _("Block Fake News"),
+            "gambling": _("Block Gambling"),
+            "porn": _("Block Adult Content"),
+            "social": _("Block Social Media")
+        }
+
+        self._hosts_switches = {}
+        for cat in HOSTS_CATEGORIES:
+            row = Adw.SwitchRow()
+            row.set_title(labels.get(cat, cat))
+            row.connect("notify::active", self._on_hosts_toggled)
+            self._extra_group.add(row)
+            self._hosts_switches[cat] = row
+
+        inner.append(self._extra_group)
 
         # ── Apply ─────────────────────────────────────────────
         self._apply_btn = Gtk.Button(label=_("Apply"))
@@ -231,6 +260,12 @@ class DnsPage(Gtk.Box):
         else:
             self._enable_row.set_active(False)
             self._providers_group.set_sensitive(False)
+        
+        # Load hosts filter status
+        active_cats = self._dns.get_hosts_filter_status()
+        for cat, row in self._hosts_switches.items():
+            row.set_active(cat in active_cats)
+        
         self._loading = False
         self._apply_btn.set_sensitive(False)
 
@@ -248,6 +283,27 @@ class DnsPage(Gtk.Box):
         self._custom_group.set_visible(self._custom_check.get_active())
         if not self._loading:
             self._apply_btn.set_sensitive(True)
+
+    def _on_hosts_toggled(self, row: Adw.SwitchRow, _pspec: object) -> None:
+        """Enable or disable system-wide hosts-based filtering."""
+        if self._loading:
+            return
+
+        # Collect all active categories
+        active_cats = [cat for cat, sw in self._hosts_switches.items() if sw.get_active()]
+
+        def do_hosts() -> bool:
+            return self._dns.set_hosts_filter(active_cats)
+
+        def on_done(ok: bool) -> None:
+            if ok:
+                self._show_success(_("System-wide filters updated."))
+            else:
+                self._show_error(_("Failed to update hosts filtering."))
+                # Revert if failed
+                self.refresh()
+
+        run_async(do_hosts, on_done)
 
     def _open_url(self, url: str) -> None:
         launcher = Gtk.UriLauncher(uri=url)
